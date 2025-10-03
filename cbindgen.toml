@@ -1,0 +1,7 @@
+language = "C"
+
+[parse.expand]
+crates = []
+all_features = false
+default_features = true
+features = ["abi"]
