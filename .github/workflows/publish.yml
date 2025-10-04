@@ -1,0 +1,93 @@
+name: Build C Library
+
+on:
+  push:
+
+jobs:
+  build:
+    name: Build C ABI Compatible binaries
+
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+
+          - os: windows-latest
+            target: aarch6464-pc-windows-msvc
+
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+
+          - os: ubuntu-latest-arm
+            target: aarch64-unknown-linux-gnu
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: ${{ matrix.target }}
+          toolchain: nightly
+          cache-all-crates: true
+
+      - name: Build
+        shell: pwsh
+        run: |
+          cargo install --force cbindgen
+          ./build.ps1
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          path: ./ahqstore_sdk_${{ matrix.target }}.zip
+          name: ahqstore_sdk_${{ matrix.target }}.zip
+
+  release:
+    needs: [build]
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: out
+
+      - name: Get version
+        uses: actions/github-script@v8
+        id: ver
+        with:
+          result-encoding: string
+          script: |
+            const { readFileSync } = require("node:fs");
+
+            return `AHQ Store SDK v${readFileSync('${{ github.workspace }}/.version')}`
+
+      - name: Get tag
+        uses: actions/github-script@v8
+        id: tag
+        with:
+          result-encoding: string
+          script: |
+            const { readFileSync } = require("node:fs");
+
+            return `v${readFileSync('${{ github.workspace }}/.version')}-${Date.now()}`
+
+      - name: Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.tag.outputs.result }}
+          name: ${{ steps.ver.outputs.result }}
+          artifacts: "out/**/*.zip"
+          bodyFile: "release.md"

@@ -17,3 +17,5 @@ if ($env:DEV -eq "true") {
 }
 
 Get-ChildItem -Path "./target/${env:TARGET}/$target/*" -Include "ahqstore_sdk.dll", "ahqstore_sdk.dylib", "ahqstore_sdk.so", "libahqstore_sdk.dll", "libahqstore_sdk.dylib", "libahqstore_sdk.so" | Copy-Item -Destination "out/"
+
+Compress-Archive -Path "./out/*" -DestinationPath "./ahqstore_sdk_${env:TARGET}.zip"

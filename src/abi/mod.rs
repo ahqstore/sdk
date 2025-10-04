@@ -1,16 +1,13 @@
-use std::{ffi::{CStr, CString, c_char}, sync::{Arc, OnceLock}};
+use std::{ffi::{CStr, CString, c_char}, sync::OnceLock};
 
-static APPID: OnceLock<Arc<String>> = OnceLock::new();
+use crate::SDKApp;
+
+static APPID: OnceLock<SDKApp> = OnceLock::new();
 
 fn set_appid(s: *const c_char) -> Option<()> {
   let st: CString = unsafe { CStr::from_ptr(s) }.to_owned();
-  let st = st.into_string().ok()?;
 
-  APPID.set(Arc::new(st)).ok()
-}
-
-fn get_appid() -> Option<&'static str> {
-  Some(APPID.get()?.as_str())
+  APPID.set(SDKApp::create_from_cstring(st)).ok()
 }
 
 #[unsafe(no_mangle)]
