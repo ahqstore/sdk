@@ -33,6 +33,7 @@ jobs:
         with:
           target: ${{ matrix.target }}
           toolchain: nightly
+          cache-key: ${{ matrix.target }}
           cache-all-crates: true
 
       - name: Build
@@ -46,11 +47,14 @@ jobs:
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          path: ./ahqstore_sdk_${{ matrix.target }}.zip
-          name: ahqstore_sdk_${{ matrix.target }}.zip
+          path: |
+            ./ahqstore_sdk_${{ matrix.target }}.zip
+          name: ahqstore_sdk_${{ matrix.target }}
 
   release:
     needs: [build]
+
+    name: Create Release
 
     runs-on: ubuntu-latest
 
