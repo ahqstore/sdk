@@ -40,6 +40,8 @@ jobs:
         run: |
           cargo install --force cbindgen
           ./build.ps1
+        env:
+          TARGET: ${{ matrix.target }}
 
       - name: Upload
         uses: actions/upload-artifact@v4
